@@ -29,7 +29,9 @@
 
 5. python封装的使用方式查看 bpftools.py 
 
-6. 编译
+6. 生成vmlinux.h `./scripts/gen_vmlinux.sh` 
+ 
+7. 编译
 
     ```sh 
     #在根目录下
@@ -39,6 +41,6 @@
     make install 
     ```
 
-7. 被编译的eBPF字节码放在 `./install/bpf_kern_objs` 
+8. 被编译的eBPF字节码放在 `./install/bpf_kern_objs` 
 
 8. bin文件放在 `./bin` 
