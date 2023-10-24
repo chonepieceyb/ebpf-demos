@@ -55,3 +55,7 @@ build
 bin
 install
 src/bpf_kern/vmlinux.h
+.cache/
+src/python/__pycache__/
+*.DS_Store
+*__pycache__/
