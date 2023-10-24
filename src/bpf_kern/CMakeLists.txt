@@ -13,7 +13,31 @@ add_library(ebpf_demo OBJECT ${BPF_SRC_LIST})
 
 target_include_directories(ebpf_demo PUBLIC "${LINUX_PATH}/tools/lib")
 
-install(FILES $<TARGET_OBJECTS:ebpf_demo> DESTINATION "${BPF_KERN_TARGETS}")
+#install(FILES $<TARGET_OBJECTS:ebpf_demo> DESTINATION "${BPF_KERN_TARGETS}")
+add_custom_target(bpf_copy
+    COMMAND "${CMAKE_COMMAND}"
+          -DTARGET_OBJS="$<TARGET_OBJECTS:ebpf_demo>"
+          -DTARGET_DEST="${BPF_KERN_TARGETS}"
+          -P "${CMAKE_CURRENT_SOURCE_DIR}/copy_bpf_objs.cmake"
+)
+
+add_custom_target(bpf_skel
+    COMMAND "${CMAKE_COMMAND}"
+          -DTARGET_DEST="${BPF_KERN_TARGETS}"
+          -DTARGET_SKEL_HEADER_DIR="${BPF_SKEL_HEADERS}"
+          -P "${CMAKE_CURRENT_SOURCE_DIR}/skeleton.cmake"
+)
+
+add_custom_target(bpf ALL
+    COMMAND "${CMAKE_COMMAND}"
+          -DTARGET_OBJS="$<TARGET_OBJECTS:ebpf_demo>"
+          -DTARGET_DEST="${BPF_KERN_TARGETS}"
+          -P "${CMAKE_CURRENT_SOURCE_DIR}/copy_bpf_objs.cmake"
+    COMMAND "${CMAKE_COMMAND}"
+          -DTARGET_DEST="${BPF_KERN_TARGETS}"
+          -DTARGET_SKEL_HEADER_DIR="${BPF_SKEL_HEADERS}"
+          -P "${CMAKE_CURRENT_SOURCE_DIR}/skeleton.cmake"
+)
 
 set(CMAKE_C_FLAGS
     "${CMAKE_CXX_FLAGS} -Werror -g -O2 -target bpf"

@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <assert.h> 
 
-
 int main(int argc, char **argv) {
         
     assert(argc == 3 && "usage ./kprobe_demo_user path_of_bpf_oject program_name");

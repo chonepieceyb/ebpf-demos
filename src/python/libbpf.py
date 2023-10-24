@@ -230,6 +230,9 @@ lib.bpf_link__pin.argtypes = [ct.c_void_p, ct.c_char_p]
 lib.bpf_program__attach_kprobe.restype = ct.c_void_p
 lib.bpf_program__attach_kprobe.argtypes = [ct.c_void_p, ct.c_bool, ct.c_char_p]
 
+lib.bpf_program__attach_trace.restype = ct.c_void_p
+lib.bpf_program__attach_trace.argtypes = [ct.c_void_p]
+
 lib.bpf_program__name.restype = ct.c_char_p
 lib.bpf_program__name.argtypes = [ct.c_void_p]
 
@@ -622,6 +625,12 @@ def bpf_program__attach_kprobe(bpf_program, retprobe, func_name):
     link = lib.bpf_program__attach_kprobe(bpf_program, ct.c_bool(retprobe), func_name.encode(encoding = "utf-8"))
     res = lib.libbpf_get_error(link)
     check_libpfres("bpf_program__attach_kprobe failed to attach prog %s to %s with retprobe = %s"%(bpf_program__name(bpf_program), func_name, str(retprobe)), res)
+    return link
+
+def bpf_program__attach_trace(bpf_program):
+    link = lib.bpf_program__attach_trace(bpf_program)
+    res = lib.libbpf_get_error(link)
+    check_libpfres("bpf_program__attach_trace failed to attach prog %s"%(bpf_program__name(bpf_program)), res)
     return link
 
 def bpf_map__attach_struct_ops(bpf_map):

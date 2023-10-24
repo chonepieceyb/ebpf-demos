@@ -55,3 +55,4 @@ build
 bin
 install
 src/bpf_kern/vmlinux.h
+.cache/
