@@ -1,4 +1,7 @@
 function(rename_and_copy OBJS DEST)
+    if (NOT EXISTS ${DEST})
+        file(MAKE_DIRECTORY ${DEST})
+    endif()
     foreach(OBJ_PATH ${OBJS})
         string(REGEX REPLACE ".+/(.+)" "\\1" OBJ_NAME ${OBJ_PATH})
         string(REPLACE ".c." "." NEW_OBJ_NAME ${OBJ_NAME})
