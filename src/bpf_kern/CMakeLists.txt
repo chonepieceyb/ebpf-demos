@@ -32,7 +32,7 @@ add_custom_target(bpf_skel
           -P "${CMAKE_CURRENT_SOURCE_DIR}/skeleton.cmake"
 )
 
-add_custom_target(bpf ALL
+add_custom_target(bpf_install ALL
     COMMAND "${CMAKE_COMMAND}"
           -DTARGET_OBJS="$<TARGET_OBJECTS:ebpf_demo>"
           -DTARGET_DEST="${BPF_KERN_TARGETS}"
@@ -42,6 +42,8 @@ add_custom_target(bpf ALL
           -DTARGET_SKEL_HEADER_DIR="${BPF_SKEL_HEADERS}"
           -P "${CMAKE_CURRENT_SOURCE_DIR}/skeleton.cmake"
 )
+
+add_dependencies(bpf_install ebpf_demo)
 
 set(CMAKE_C_FLAGS
     "${CMAKE_CXX_FLAGS} -Werror -g -O2 -target bpf"
