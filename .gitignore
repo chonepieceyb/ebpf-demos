@@ -55,6 +55,7 @@ build
 bin
 install
 src/bpf_kern/vmlinux.h
+scripts/DPDK/config
 .cache/
 src/python/__pycache__/
 *.DS_Store

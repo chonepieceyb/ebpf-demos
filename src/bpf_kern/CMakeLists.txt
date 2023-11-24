@@ -46,5 +46,5 @@ add_custom_target(bpf_install ALL
 add_dependencies(bpf_install ebpf_demo)
 
 set(CMAKE_C_FLAGS
-    "${CMAKE_CXX_FLAGS} -Werror -g -O2 -target bpf"
+    "${CMAKE_C_FLAGS} -Werror -g -O2 -target bpf"
 )
