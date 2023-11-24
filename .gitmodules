@@ -1,3 +1,6 @@
+[submodule "deps/bcc"]
+	path = deps/bcc
+	url = https://github.com/iovisor/bcc.git
 [submodule "deps/libbpf"]
 	path = deps/libbpf
 	url = https://github.com/libbpf/libbpf.git

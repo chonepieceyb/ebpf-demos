@@ -5,9 +5,9 @@ set -e
 
 pushd $PROJECT_DIR > /dev/null
 
-if [ ! -d ./build ]; then 
-    cmake -B build ./
-fi
+
+cmake -B build ./
+rm -rf ./src/c/bpf_skel/*
 
 cd ./build 
 

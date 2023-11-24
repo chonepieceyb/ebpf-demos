@@ -5,31 +5,51 @@ COLOR_YELLOW='\033[0;33m'
 COLOR_OFF='\033[0m' # No Color
 cpu=$(cat /proc/cpuinfo | grep processor | wc -l)
 
-
-
+LIBBPF_TAG=v1.3.0
+BCC_TAG=v0.28.0
 
 set -e
 
+git submodule init 
+git submodule update 
+
+#install and compile libbpf
 if [ -d "./linux" ]; then
     echo -e "${COLOR_GREEN} [INFO] using libbpf from ./linux source code${COLOR_OFF}"
     echo -e "${COLOR_GREEN} [INFO] builing ./linux/tools/lib/bpf (libbpf)${COLOR_OFF}"
     pushd "./linux/tools/lib/bpf" > /dev/null
-    make clean 
-    make -j $cpu 
+    make clean
+    rm -rf ./compile_commands.json 
+    bear -- make -j $cpu 
     echo -e "${COLOR_GREEN} [INFO] builing ./linux/tools/bpf (bpftool)${COLOR_OFF}"
     cd ../bpf
     make clean 
-    make -j $cpu 
+    rm -rf ./compile_commands.json 
+    bear -- make -j $cpu 
     popd > /dev/null
 else
-    echo -e "${COLOR_GREEN} [INFO] using libbpf from https://github.com/libbpf/libbpf.git${COLOR_OFF}"
+    echo -e "${COLOR_GREEN} [INFO] using libbpf $LIBBPF_TAG from https://github.com/libbpf/libbpf.git${COLOR_OFF}"
     echo -e "${COLOR_GREEN} [INFO] you may also using libbpf from linux source tree by create soft link of linux source code in ./linux${COLOR_OFF}"
-    git submodule init 
-    git submodule update 
     echo -e "${COLOR_GREEN} [INFO] builing ./deps/libbpf/${COLOR_OFF}"
-    pushd "./deps/libbpf/src" > /dev/null
+    pushd "./deps/libbpf/" > /dev/null
+    git checkout master 
+    git clean -fd
+    git checkout $LIBBPF_TAG > /dev/null
+    cd ./src
     make clean
-    make -j $cpu
+    rm -rf ./compile_commands.json 
+
+    __http_proxy=$http_proxy
+    __https_proxy=$https_proxy
+    __all_proxy=$all_proxy
+    unset http_proxy
+    unset https_proxy
+    unset all_proxy
+    bear -- make -j $cpu
+    export http_proxy=$__http_proxy
+    export https_proxy=$__https_proxy
+    export all_proxy=$__all_proxy
+
     popd > /dev/null
     set +e
     dpkg --list | grep linux-tools-$(uname -r)
@@ -42,6 +62,28 @@ else
         set -e 
     fi     
 fi 
+echo -e "${COLOR_GREEN} [INFO] installing libbpf finish ${COLOR_OFF}"
+
+#install bcc
+echo -e "${COLOR_GREEN} [INFO] installing bcc $BCC_TAG. .. ${COLOR_OFF}"
+pushd "./deps/bcc/" > /dev/null
+git checkout master 
+git clean -fd
+git checkout $BCC_TAG
+#install LLVM dependencies 
+sudo apt-get install -y libllvm14 llvm-14-dev libclang-14-dev
+export LLVM_ROOT="/usr/lib/llvm-14"
+rm -rf build
+mkdir build && cd build
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ../
+make -j $cpu 
+cmake -DPYTHON_CMD=python3 ..
+pushd src/python/ > /dev/null
+make
+sudo make install
+popd > /dev/null
+popd  > /dev/null
+echo -e "${COLOR_GREEN} [INFO] installing bcc finish ${COLOR_OFF}"
 
 echo -e "${COLOR_GREEN} [INFO] generate vmlinux.h${COLOR_OFF}"
 
