@@ -60,3 +60,4 @@ scripts/DPDK/config
 src/python/__pycache__/
 *.DS_Store
 *__pycache__/
+results
