@@ -77,9 +77,12 @@ rm -rf build
 mkdir build && cd build
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ../
 make -j $cpu 
+sudo make install
 cmake -DPYTHON_CMD=python3 ..
 pushd src/python/ > /dev/null
 make
+#remove the old bcc python 
+sudo rm -rf /usr/lib/python3/dist-packages/bcc
 sudo make install
 popd > /dev/null
 popd  > /dev/null

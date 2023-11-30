@@ -23,9 +23,10 @@ signal.signal(signal.SIGINT, intr)
 
 
 def usage():
-        print("Usage: %s [-E] [-c] [-crx] [-ctx] [-f pattern] [-x pattern] IFC" % \
+        print("Usage: %s [-n] [-E] [-c] [-crx] [-ctx] [-f pattern] [-x pattern] IFC" % \
                 sys.argv[0])
         print("\tSources")
+        print("\t-n refresh n times (watching n seconds)")
         print("\t\t-E show only ethtool -S stats (exclude ifconfig statistics)")
         print("\tColors")
         print("\t\t-crx color RX stats")
@@ -42,15 +43,18 @@ def usage():
         print("\tOrder of parameters doesn't matter.")
         sys.exit(1)
 
-
+fresh_time = -1
+keeping = True
 skip=0
 for i in range(1, len(sys.argv)):
         if skip:
                 skip -= 1
                 continue
-
         if sys.argv[i] == '-E':
                 ONLY_ETHTOOL = True
+        elif sys.argv[i] == '-n':
+                fresh_time = int(sys.argv[i+1])
+                skip+=1
         elif sys.argv[i] == '-c':
                 COLOR_DIM = True
                 COLORS.append(('discard', "33m"))
@@ -90,6 +94,9 @@ if IFC == '':
 
 stats = {}
 session = {}
+
+if fresh_time > 0:
+        keeping = False
 
 def key_ok(key):
         if len(INCL) == 0 and len(EXCL) == 0:
@@ -179,12 +186,13 @@ while True:
                               format(color, key, value - stats[key],
                                      value - session[key], value,
                                      b=key_w, c=w[2], d=w[3])
-
                 stats[key] = value
 
         os.system("clear")
         sys.stdout.write(pr)
-
+        fresh_time -= 1
+        if not keeping and fresh_time == 0:
+                break
         now = time.time()
         sleep_time = 1.0 - (now - clock)
         if sleep_time < 0:

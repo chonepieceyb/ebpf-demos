@@ -21,7 +21,7 @@ CURRENT_PATH=$(cd "$(dirname "$0")"; pwd)
 
 #CPUMAP=0x6A400A0801
 
-cmd=$(echo "sudo dpdk-testpmd -c ${CPUMAP} --main-lcore ${MAINCORE} -- -a \
+cmd=$(echo "sudo dpdk-testpmd -c ${CPUMAP} --main-lcore ${MAINCORE} -- -i \
     --forward-mode=txonly --stats-period=1 --coremask=${RUN_CPUMAP} --portmask=${PORT_MASK} \
     --nb-cores=${NB_CORE} --txq=${TXQ} --txd=${TXD} --burst=${BURST} --numa --txpkts=${TXPKTS} --eth-peers-configfile=${CURRENT_PATH}/eth_peers.config")
 echo $cmd

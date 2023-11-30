@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source color.sh
-CURRENT_PATH=$(cd "$(dirname "$0")"; pwd)
+
 
 source $CURRENT_PATH/config/bzwxnic_info.sh
 
