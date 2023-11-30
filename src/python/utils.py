@@ -47,7 +47,7 @@ def get_possible_cpus():
     return _read_cpu_range('/sys/devices/system/cpu/possible')
 
 default_stats_filters = ["bpf_pass_pkts", "bpf_app1_pkts", "bpf_app2_pkts", "bpf_app3_pkts", "rvec_0_rx_pkts", "rx_dropped", "rx_errors", "dev_rx_pkts", "dev_rx_discards", "dev_rx_errors", "mac.rx_pkts", "mac.rx_errors"]
-def stats_watching(devname, result_file, watching_time = 6, filters = default_stats_filters):
+def stats_watching(devname, result_file, watching_time = 6, filters = []):
     '''
     @devname: interface to watch
     @watching_time: the time to watching
@@ -84,3 +84,13 @@ def show_stats_result(result_file, filters = default_stats_filters):
 total_cpu = len(get_possible_cpus())
 
 ip_str_to_int = lambda x: sum([256**j*int(i) for j,i in enumerate(x.split('.')[::-1])])
+
+
+def sscanf(format, input, sep = ':'):
+    dfuncs = {
+        "%d" : int,
+        "%f" : float,
+        "%s" : str
+    }
+    input_dfunc = [dfuncs[s] for s in format.split(sep)]
+    return tuple([dfunc(s) for dfunc, s in zip(input_dfunc, input.split(sep))])

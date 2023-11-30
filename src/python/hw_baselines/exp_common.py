@@ -7,6 +7,8 @@ from datetime import datetime
 from common import *
 import copy
 
+RESULT_DATA_FORMAT="%Y-%m-%d-%H-%M"
+
 default_bcc_args = {
     "cflags" : ['-g'],
     #"debug" : 0x8,
@@ -115,7 +117,7 @@ int xdp_main(struct xdp_md *ctx) {
     attach_xdp_drv(prog_text, devname, bcc_args = default_bcc_args)
 
 BASE_RESULT_DIR = os.path.join(RESULTS_DIR, "baseline")
-def baseline_exp(exp_name, prog_under_test, devname, *, catch_filters = default_stats_filters, show_filters = default_stats_filters, skb_wk = {}, drv_kw = {}, hw_kw = {}):
+def baseline_exp(exp_name, prog_under_test, devname, *, catch_filters = [], show_filters = default_stats_filters, skb_kw = {}, drv_kw = {}, hw_kw = {}):
     '''
         baseline experiment scripts
     '''
@@ -134,7 +136,7 @@ def baseline_exp(exp_name, prog_under_test, devname, *, catch_filters = default_
         if not os.path.exists(exp_dir_hw):
             os.mkdir(exp_dir_hw)
             
-        time_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        time_str = datetime.now().strftime(RESULT_DATA_FORMAT)
         result_file_skb =  os.path.join(exp_dir_skb, time_str)
         result_file_drv  =  os.path.join(exp_dir_drv, time_str)
         result_file_hw  =  os.path.join(exp_dir_hw, time_str)
@@ -171,6 +173,32 @@ def baseline_exp(exp_name, prog_under_test, devname, *, catch_filters = default_
         raise e
     #running skb
     
-def show_latest_result(result_dir):
-    pass 
+def get_latest_result(result_dir):
+    results = os.listdir(result_dir)
+    if len(results) == 0:
+        return 
+    resultdates = [datetime.strptime(date, RESULT_DATA_FORMAT) for date in results]
+    resultdates = sorted(resultdates, reverse=True)
+    return datetime.strftime(resultdates[0], RESULT_DATA_FORMAT)
+
+def print_latest_exp(exp_dir, exp_config_printer, result_filter):
+    _, exp_full_name = os.path.split(exp_dir)
+    print("###EXP: %s###"%exp_full_name)
+    exp_config_printer(exp_full_name)
+    
+    for m in ["drv", "hw"]:
+        print("%s:"%m)
+        latest_result = get_latest_result(os.path.join(exp_dir, m))
+        show_stats_result(os.path.join(exp_dir, m, latest_result), result_filter)    
+    print()
+    
+def print_baseline_latest(result_filter, exp_classes):
+    all_exps = os.listdir(BASE_RESULT_DIR)
+    #filter
+    #exp_filter
+    for exp in all_exps:
+        for exp_class in exp_classes:
+            if exp.startswith(exp_class.name):
+               #print drv
+               print_latest_exp(os.path.join(BASE_RESULT_DIR, exp), exp_class.printer, result_filter)
     
