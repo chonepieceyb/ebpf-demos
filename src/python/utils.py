@@ -23,8 +23,11 @@ class ArgWrapper:
             return func(*args, **kw_args)
         return new_func 
 
-def run_cmd(cmd):
-    return os.waitstatus_to_exitcode(os.system(cmd))
+def run_cmd(cmd, *, quit_on_fail=False):
+    res = os.waitstatus_to_exitcode(os.system(cmd))
+    if quit_on_fail and res != 0:
+        exit(res)
+    return res
 
 def _read_cpu_range(path):
     cpus = []

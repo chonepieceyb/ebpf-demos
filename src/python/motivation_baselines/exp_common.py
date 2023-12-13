@@ -117,6 +117,45 @@ int xdp_main(struct xdp_md *ctx) {
     attach_xdp_drv(prog_text, devname, bcc_args = default_bcc_args)
 
 BASE_RESULT_DIR = os.path.join(RESULTS_DIR, "baseline")
+
+def exp_common(mode, exp_name, prog_under_test, devname, *, catch_filters = [], show_filters = default_stats_filters, attach_kw = {}):
+    assert mode in ["drv", "hw"] and "mode must in drv,hw"
+    try:
+        exp_dir= os.path.join(BASE_RESULT_DIR, exp_name)
+        if not os.path.exists(exp_dir):
+            os.mkdir(exp_dir)
+        exp_dir_mode =  os.path.join(exp_dir, mode)
+            
+        time_str = datetime.now().strftime(RESULT_DATA_FORMAT)
+        result_file_mode =  os.path.join(exp_dir_mode, time_str)
+     
+        os.system("touch %s && chmod 666 %s"%(result_file_mode, result_file_mode))
+        
+        #running skb two slow compared with drv and hw
+        # dettach_xdp_all(devname)
+        # attach_xdp_skb(prog_under_test, devname, **skb_wk)
+        # stats_watching(devname, result_file_skb, 7)
+        # logging.info("Exp %s skb results: "%exp_name)
+        # show_stats_result(result_file_skb)
+        
+        #running drv 
+        dettach_xdp_all(devname)
+        if mode == "hw":
+            attach_empty_xdp_drv(devname)
+            attach_xdp_hw(prog_under_test, devname, **attach_kw)
+        elif mode == "drv":
+            attach_xdp_drv(prog_under_test, devname, **attach_kw)
+  
+        stats_watching(devname, result_file_mode, 7, filters=catch_filters)
+        logging.info("Exp %s %s results: "%(exp_name, mode))
+        show_stats_result(result_file_mode, filters=show_filters)
+        dettach_xdp_all(devname)
+
+    except Exception as e: 
+        os.system("rm -rf %s"%(result_file_mode))
+        dettach_xdp_all(devname)
+        raise e
+
 def baseline_exp(exp_name, prog_under_test, devname, *, catch_filters = [], show_filters = default_stats_filters, skb_kw = {}, drv_kw = {}, hw_kw = {}):
     '''
         baseline experiment scripts
@@ -172,7 +211,7 @@ def baseline_exp(exp_name, prog_under_test, devname, *, catch_filters = [], show
         dettach_xdp_all(devname)
         raise e
     #running skb
-    
+
 def get_latest_result(result_dir):
     results = os.listdir(result_dir)
     if len(results) == 0:

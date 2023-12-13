@@ -3,8 +3,9 @@
 
 char _license[] SEC("license") = "GPL";
 
+
 SEC("xdp")
 int xdp_main(struct xdp_md *ctx) {
-       // bpf_printk("empty xdp");
-        return XDP_DROP;
+        log_debug("xdp_empty %d", 1);
+        return XDP_PASS;
 }

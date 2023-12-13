@@ -12,4 +12,5 @@ STAT_WATCH_PATH=os.path.join(SCRITS_DIR, "stat_watch_hw.py")
 
 #color 
 RESULTS_DIR=os.path.join(PROJECT_ROOT_DIR, "results")
+RESULT_DATA_FORMAT="%Y-%m-%d-%H-%M"
 

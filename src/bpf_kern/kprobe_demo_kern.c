@@ -20,6 +20,6 @@ int BPF_KPROBE(kprobe_demo, int dfd)
 	int key = 0;
 	int res;
 	res = bpf_map_update_elem(&fd_array, &key, &dfd, 0);
-	bpf_printk("kprobe helloworld, dfd %d, update to map %d\n", dfd, res);
+	log_debug("kprobe helloworld, dfd %d, update to map %d\n", dfd, res);
 	return 0;
 }

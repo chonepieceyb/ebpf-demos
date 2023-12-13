@@ -6,8 +6,6 @@ DEV_NAME = "ens4np0"
 DEBUG=False
 ############## EXP for lookup BPF_MAP_TYPE_ARRAY
 
-
-
 exp_gen_random_num = '''
 int xdp_main(struct xdp_md *ctx) {
     __u32 key = bpf_get_prandom_u32();
@@ -202,7 +200,7 @@ int xdp_main(struct xdp_md *ctx) {
         pass 
 
     @classmethod
-    def exp(cls, times = list(range(1, 11)), max_entries = [4096]):
+    def exp(cls, times = list(range(1, 11)), max_entries = [1]):
         #test hash lookup times to performance
         #exp configuration 
         
@@ -341,8 +339,68 @@ int xdp_main(struct xdp_md *ctx) {
             print(exp_prog)
             baseline_exp(exp_full_name, exp_prog, DEV_NAME, show_filters= stats_filters, skb_kw=skb_kw, drv_kw=drv_kw, hw_kw=hw_kw)
     
+ 
+######################EXP DYNAMIC PTR####################
+class exp_adjust_head_class:
+    name = "adjust_head"
+    format = "%s:%s:%d"
+    exp_configuration_base = '''%s configuration:
+mode: %s
+size: %d'''
+    exp_prog_base = '''
     
-exps =  [exp_adjust_head_class, exp_random_gen_class, exp_array_lookup_class, exp_hash_lookup_class]
+int xdp_main(struct xdp_md *ctx) {
+    int res;
+    res = bpf_xdp_adjust_head(ctx, %d);
+    if (res < 0) {
+        return XDP_DROP;
+    }
+    return DEFAULT_ACTION;
+}
+
+'''
+    
+    @classmethod
+    def print_config(cls, exp_configs):
+        print(cls.exp_configuration_base%exp_configs)
+        
+    @classmethod
+    def printer(cls, exp_full_name):
+        cls.print_config(sscanf(cls.format, exp_full_name))
+        pass 
+
+    @classmethod   
+    def exp(cls, sizes = [-64, -48, -32, -16, -8]):
+        #test random generation
+        #exp configuration 
+        exp_name = cls.name
+        exp_configs = []
+        for s in sizes:
+            if s > 0: 
+                exp_configs.append((exp_name, "shrink", abs(s)))
+            elif s < 0:
+                exp_configs.append((exp_name, "grow", abs(s)))
+            else:
+                continue
+            
+        for exp_config in exp_configs:
+            exp_full_name = cls.format%exp_config
+            if exp_config[1] == 'shrink':
+                offset = exp_config[2]
+            else:
+                offset = -exp_config[2]
+            exp_prog = cls.exp_prog_base%offset
+            logging.info("Exp %s configuration:", exp_full_name)
+            cls.print_config(exp_config)
+            logging.info("Prog under test:")
+            print(exp_prog)
+            baseline_exp(exp_full_name, exp_prog, DEV_NAME, show_filters= stats_filters, skb_kw=skb_kw, drv_kw=drv_kw, hw_kw=hw_kw) 
+    
+    
+    
+#exps =  [exp_adjust_head_class, exp_random_gen_class, exp_array_lookup_class, exp_hash_lookup_class]
+
+exps = [exp_hash_lookup_class]
 
 if __name__ == '__main__': 
     import sys
